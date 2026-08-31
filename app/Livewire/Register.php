@@ -34,6 +34,7 @@ class Register extends Component
         ]);
 
         session()->flash('message', '登録okです');
+
         return to_route('livewire-test.index');
     }
 
