@@ -286,5 +286,11 @@ return [
         'winner'                   => '受賞者',
         'work'                     => '仕事',
         'year'                     => '年',
+        'event_name'               => 'イベント名',
+        'information'              => 'イベント詳細',
+        'max_people'               => '定員数',
+        'event_date'               => 'イベント日付',
+        'start_time'               => '開始時間',
+        'end_time'                 => '終了時間',
     ],
 ];
