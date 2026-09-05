@@ -68,7 +68,7 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        Event::findOrFail($event->id);
+        // $event = Event::findOrFail($event->id);
         $eventDate = $event->eventDate;
         $startTime = $event->startTime;
         $endTime = $event->endTime;
@@ -81,7 +81,12 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
-        //
+        // $event = Event::findOrFail($event->id);
+        $eventDate = $event->editEventDate;
+        $startTime = $event->startTime;
+        $endTime = $event->endTime;
+        
+        return view('manager.events.edit', compact('event', 'eventDate', 'startTime', 'endTime'));        
     }
 
     /**
@@ -89,7 +94,36 @@ class EventController extends Controller
      */
     public function update(UpdateEventRequest $request, Event $event)
     {
-        //
+        // 重複チェック
+        $check = EventService::countEventDuplication($request['event_date'], $request['start_time'], $request['end_time']);
+
+        if ($check > 1) {
+            // $event = Event::findOrFail($event->id);
+            // $eventDate = $event->editEventDate;
+            // $startTime = $event->startTime;
+            // $endTime = $event->endTime;
+            // session()->flash('status', '既に同じ日時でイベントが登録されています');
+            // return view('manager.events.edit', compact('event', 'eventDate', 'startTime', 'endTime'));
+            
+            // こっちの方が簡潔にかけて良さそうなので、こちらを採用
+            return back()->withInput()->with('status', '既に同じ日時でイベントが登録されています');
+        }
+
+        $startDate = EventService::joinDateAndTime($request['event_date'], $request['start_time']);
+        $endDate = EventService::joinDateAndTime($request['event_date'], $request['end_time']);
+
+        // $event = Event::findOrFail($event->id);
+        $event->name = $request['event_name'];
+        $event->information = $request['information'];
+        $event->start_date = $startDate;
+        $event->end_date = $endDate;
+        $event->max_people = $request['max_people'];
+        $event->is_visible = $request['is_visible'];
+        $event->save();
+
+        session()->flash('status', '更新しました。');
+
+        return to_route('events.index');
     }
 
     /**
