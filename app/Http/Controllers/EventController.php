@@ -84,6 +84,12 @@ class EventController extends Controller
      */
     public function edit(Event $event)
     {
+        $today = Carbon::today()->format('Y年m月d日');
+        // 過去のイベントは編集できないようにする
+        if($event->eventDate < $today){
+            return abort(404);
+        }
+
         // $event = Event::findOrFail($event->id);
         $eventDate = $event->editEventDate;
         $startTime = $event->startTime;
