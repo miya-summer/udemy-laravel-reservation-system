@@ -18,9 +18,18 @@ class EventController extends Controller
     {
         $today = Carbon::today();
 
+        $reservedPeople = DB::table('reservations')
+        ->select('event_id', DB::raw('sum(number_of_people) as number_of_people'))
+        ->whereNull('canceled_date')
+        ->groupBy('event_id');
+
         $events = DB::table('events')
-        ->whereDate('start_date', '>=', $today)
-        ->orderBy('start_date', 'desc')
+        ->leftJoinSub($reservedPeople, 'reservedPeople',
+            function($join){
+            $join->on('events.id', '=', 'reservedPeople.event_id');
+        })
+        ->whereDate('events.start_date', '>=', $today)
+        ->orderBy('events.start_date', 'desc')
         ->paginate(10);
 
         return view('manager.events.index', compact('events'));
@@ -75,8 +84,22 @@ class EventController extends Controller
         $eventDate = $event->eventDate;
         $startTime = $event->startTime;
         $endTime = $event->endTime;
+        $users = $event->users;
+        $reservations = []; // 予約情報を格納する配列
+
+        foreach($users as $user)
+        {
+            $reservedInfo = [
+                'name' => $user->name,
+                'number_of_people' => $user->pivot->number_of_people,
+                'canceled_date' => $user->pivot->canceled_date
+            ];
+
+            array_push($reservations, $reservedInfo); // 連想配列に追加
+        }
+
         // dd($eventDate, $startTime, $endTime);
-        return view('manager.events.show', compact('event', 'eventDate', 'startTime', 'endTime'));
+        return view('manager.events.show', compact('event', 'reservations', 'users', 'eventDate', 'startTime', 'endTime'));
     }
 
     /**
@@ -139,9 +162,18 @@ class EventController extends Controller
     {
         $today = Carbon::today();
 
+        $reservedPeople = DB::table('reservations')
+        ->select('event_id', DB::raw('sum(number_of_people) as number_of_people'))
+        ->whereNull('canceled_date')
+        ->groupBy('event_id');
+
         $events = DB::table('events')
-        ->whereDate('start_date', '<', $today)
-        ->orderBy('start_date', 'desc')
+        ->leftJoinSub($reservedPeople, 'reservedPeople',
+            function($join){
+            $join->on('events.id', '=', 'reservedPeople.event_id');
+        })
+        ->whereDate('events.start_date', '<', $today)
+        ->orderBy('events.start_date', 'desc')
         ->paginate(10);
 
         return view('manager.events.past', compact('events'));

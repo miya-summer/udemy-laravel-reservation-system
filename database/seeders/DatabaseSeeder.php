@@ -18,11 +18,12 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        Event::factory(100)->create();
+
         $this->call([
             UserSeeder::class,
+            ReservationSeeder::class,
         ]);
-
-        Event::factory(100)->create();
 
         // User::factory()->create([
         //     'name' => 'Test User',
